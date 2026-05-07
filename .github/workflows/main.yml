@@ -1,0 +1,48 @@
+name: Deploy React App
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v1.0.3
+
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ secrets.PORT }}
+
+        script: |
+
+          cd /var/www/html/react-app
+
+          echo "Pull latest code"
+
+          git pull origin main
+
+          echo "Remove old build"
+
+          rm -rf dist
+
+          echo "Install packages"
+
+          npm install
+
+          echo "Create new build"
+
+          npm run build
+
+          echo "Restart nginx"
+
+          sudo systemctl restart nginx
